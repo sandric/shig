@@ -1,0 +1,33 @@
+FROM ubuntu
+#RUN apt-get update -q
+
+RUN apt-get install -y curl
+
+RUN gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+
+RUN curl -L https://get.rvm.io | bash -s stable
+
+RUN /bin/bash -l -c 'rvm install 2.2.0'
+RUN /bin/bash -l -c 'rvm --default use 2.2.0'
+
+RUN /bin/bash -l -c 'gem install bundler'
+
+RUN apt-get install -y libpq-dev
+
+RUN useradd -d /home/developer -G users,sudo developer
+RUN usermod -g users developer
+RUN mkdir /home/developer
+RUN chown developer:users /home/developer
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+USER developer
+RUN mkdir /home/developer/application
+ADD Gemfile /home/developer/application/Gemfile
+USER root
+
+WORKDIR /home/developer/application
+
+
+#CMD /bin/bash -l -c 'gem install bundler && bundle install'
+
+CMD /bin/bash

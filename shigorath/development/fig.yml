@@ -1,0 +1,21 @@
+app:
+  build: shigorath/development/web
+  command: /bin/bash
+  links:
+    - db
+  ports:
+    - "3000:3000"
+  volumes:
+    - ../../../:/home/developer/application
+  volumes_from:
+    - gems
+
+gems:
+  image: busybox
+  volumes:
+    - gems
+
+db:
+  image: postgres
+  ports:
+    - "5432"
