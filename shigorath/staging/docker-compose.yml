@@ -1,12 +1,12 @@
 app:
-  build: shigorath/development/web
-  command: /bin/bash
+  build: shigorath/staging/app
+  command: /bin/bash shigorath/staging/app/start
   links:
     - db
   ports:
     - "3000:3000"
   volumes:
-    - ../../../:/home/developer/application
+    - .:/home/deployer/application
   volumes_from:
     - gems
 

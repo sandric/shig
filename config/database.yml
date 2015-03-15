@@ -8,14 +8,14 @@ default: &default
   adapter: postgresql
   pool: 5
   timeout: 5000
-
-development:
-  <<: *default
-  database: application_dev
   encoding: unicode
   username: postgres
   password: 
   host: db
+
+development:
+  <<: *default
+  database: application_dev
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -23,6 +23,10 @@ development:
 test:
   <<: *default
   database: application_test
+
+staging:
+  <<: *default
+  database: application_staging
 
 production:
   <<: *default
