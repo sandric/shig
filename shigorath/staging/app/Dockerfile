@@ -8,8 +8,8 @@ RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 USER deployer
 RUN mkdir /home/deployer/application
-ADD application/Gemfile /home/deployer/application/Gemfile
+ADD Gemfile /home/deployer/application/Gemfile
 
 WORKDIR /home/deployer/application
 
-CMD /bin/bash start
+CMD /bin/bash shigorath/staging/app/start

@@ -1,5 +1,6 @@
 app:
-  build: shigorath/staging/app
+  build: .
+  dockerfile: app.dockerfile
   command: /bin/bash shigorath/staging/app/start
   links:
     - db
@@ -21,7 +22,8 @@ db:
     - "5432"
 
 web:
-  build: shigorath/staging/web
+  build: .
+  dockerfile: web.dockerfile
   ports:
     - "80:80"
   links:
