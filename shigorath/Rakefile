@@ -17,27 +17,25 @@ namespace :shig do
     end
   end
 
-  desc 'Mount application context'
-  task :mount_context do
+  desc 'Copy dockerfiles to application root'
+  task :copy_dockerfiles_to_root do
     images_to_build('staging').each do |image|
-      rm_rf "staging/#{image}/application/"    
-      mkdir "staging/#{image}/application"
-      sh "sudo mount -o bind ../ staging/#{image}/application"
+      cp "staging/#{image}/Dockerfile", "../#{image}.dockerfile"   
     end
   end 
 
-  desc 'Unmount application context'
-  task :unmount_context do
+  desc 'Remove copied dockerfiles from application context'
+  task :remove_dockerfiles_from_root do
     images_to_build('staging').each do |image|
-      sh "sudo umount staging/#{image}/application" unless Dir["staging/#{image}/application"].empty?
-      rm_rf "staging/#{image}/application/"
+      rm "../#{image}.dockerfile"
     end
   end
 
   desc 'Build local staging'
-  task :build_local_staging, [:mount_context] do
+  task :build_local_staging => [:copy_dockerfiles_to_root] do
     Dir.chdir('../') do
       sh 'docker-compose -f shigorath/staging/docker-compose.yml build'
     end
+    Rake::Task["shig:remove_dockerfiles_from_root"].invoke
   end
 end
