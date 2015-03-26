@@ -94,6 +94,18 @@ namespace :shig do
           sh "docker-compose -f shigorath/#{environment}/docker-compose.yml ps"
         end
       end
+
+      desc "Run #{environment} container"
+      task :run, [:image_name, :command_name] do |t, args|
+        Dir.chdir('../') do
+          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml run --rm #{args[:image_name]} #{args[:command_name]}"
+        end
+      end
+      
+      desc "Attach #{environment} container"
+      task :attach, [:image_name] do |t, args|
+        Rake::Task["shig:#{environment}:run"].invoke((args[:image_name] || 'app'), '/bin/bash')
+      end
     end
   end
 end
