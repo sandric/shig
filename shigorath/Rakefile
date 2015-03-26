@@ -7,35 +7,43 @@ namespace :shig do
     settings.map{|name, params| params.has_key?('build')? name:nil}.compact
   end
 
-  desc 'Basic deploy of staging images'
-  task :staging_deploy do
-    deploy_timestamp = Time.now.to_i
-    images_to_build('staging').each do |image|
-      tagged_image = "104.131.124.150:5000/staging_#{image}:#{deploy_timestamp}"
-      sh "docker tag staging_#{image}:latest #{tagged_image}"
-      sh "docker push #{tagged_image}"
-    end
+  def environments
+    Dir.glob('*').select {|f| File.directory?(f) && f != 'shared'}
   end
 
-  desc 'Copy dockerfiles to application root'
-  task :copy_dockerfiles_to_root do
-    images_to_build('staging').each do |image|
-      cp "staging/#{image}/Dockerfile", "../#{image}.dockerfile"   
-    end
-  end 
+  environments.each do |environment|
+    namespace environment do
+      desc "Basic deploy of #{environment} images"
+      task :deploy do
+        deploy_timestamp = Time.now.to_i
+        images_to_build(environment).each do |image|
+          tagged_image = "104.131.124.150:5000/#{environment}_#{image}:#{deploy_timestamp}"
+          sh "docker tag #{environment}_#{image}:latest #{tagged_image}"
+          sh "docker push #{tagged_image}"
+        end
+      end
 
-  desc 'Remove copied dockerfiles from application context'
-  task :remove_dockerfiles_from_root do
-    images_to_build('staging').each do |image|
-      rm "../#{image}.dockerfile"
-    end
-  end
+      desc "Copy #{environment} dockerfiles to application root"
+      task :copy_dockerfiles_to_root do
+        images_to_build(environment).each do |image|
+          cp "#{environment}/#{image}/Dockerfile", "../#{image}.dockerfile"
+        end
+      end
 
-  desc 'Build local staging'
-  task :build_local_staging => [:copy_dockerfiles_to_root] do
-    Dir.chdir('../') do
-      sh 'docker-compose -f shigorath/staging/docker-compose.yml build'
+      desc "Remove copied #{environment} dockerfiles from application context"
+      task :remove_dockerfiles_from_root do
+        images_to_build(environment).each do |image|
+          rm "../#{image}.dockerfile"
+        end
+      end
+
+      desc "Build #{environment}"
+      task :build => [:copy_dockerfiles_to_root] do
+        Dir.chdir('../') do
+          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml build"
+        end
+        Rake::Task["shig:#{environment}:remove_dockerfiles_from_root"].invoke
+      end
     end
-    Rake::Task["shig:remove_dockerfiles_from_root"].invoke
   end
 end
