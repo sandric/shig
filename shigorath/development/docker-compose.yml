@@ -1,5 +1,6 @@
 app:
-  build: shigorath/development/app
+  build: .
+  dockerfile: app.dockerfile
   command: /bin/bash shigorath/development/app/start
   links:
     - db

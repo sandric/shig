@@ -8,7 +8,7 @@ RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 USER developer
 RUN mkdir /home/developer/application
-ADD application/Gemfile /home/developer/application/Gemfile
+ADD ./Gemfile /home/developer/application/Gemfile
 
 WORKDIR /home/developer/application
 
