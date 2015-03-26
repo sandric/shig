@@ -44,6 +44,56 @@ namespace :shig do
         end
         Rake::Task["shig:#{environment}:remove_dockerfiles_from_root"].invoke
       end
+
+      desc "Up #{environment}"
+      task :up do
+        Dir.chdir('../') do
+          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml up"
+        end
+      end
+
+      desc "Start #{environment}"
+      task :start do
+        Dir.chdir('../') do
+          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml up -d"
+        end
+      end
+
+      desc "Stop #{environment}"
+      task :stop do
+        Dir.chdir('../') do
+          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml stop"
+        end
+      end
+
+      desc "Restart #{environment}"
+      task :restart do
+        Dir.chdir('../') do
+          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml stop"
+          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml up -d"
+        end
+      end
+
+      desc "Kill #{environment}"
+      task :kill do
+        Dir.chdir('../') do
+          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml kill"
+        end
+      end
+
+      desc "Logs #{environment}"
+      task :logs do
+        Dir.chdir('../') do
+          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml logs"
+        end
+      end
+
+      desc "PS #{environment}"
+      task :ps do
+        Dir.chdir('../') do
+          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml ps"
+        end
+      end
     end
   end
 end
