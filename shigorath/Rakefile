@@ -2,109 +2,122 @@ require 'yaml'
 
 namespace :shig do
 
-  def images_to_build(environment)
-    settings = YAML::load(File.open("#{environment}/docker-compose.yml"))
+  def images_to_build(location, environment)
+    settings = YAML::load(File.open("#{location}/#{environment}/docker-compose.yml"))
     settings.map{|name, params| params.has_key?('build')? name:nil}.compact
   end
 
-  def environments
-    Dir.glob('*').select {|f| File.directory?(f) && f != 'shared'}
+  def environments(location)
+    Dir.chdir("/home/sandric/projects/shig/shigorath/#{location.to_s}") do 
+      Dir.glob("*").select {|f| File.directory?(f) && f != 'shared'}
+    end
   end
 
-  environments.each do |environment|
-    namespace environment do
-      desc "Basic deploy of #{environment} images"
-      task :deploy do
-        deploy_timestamp = Time.now.to_i
-        images_to_build(environment).each do |image|
-          tagged_image = "104.131.124.150:5000/#{environment}_#{image}:#{deploy_timestamp}"
-          sh "docker tag #{environment}_#{image}:latest #{tagged_image}"
-          sh "docker push #{tagged_image}"
-        end
-      end
+  [:local, :remote].each do |location|
+    namespace location do
+      environments(location).each do |environment|
+        namespace environment do
+          desc "Basic deploy of #{location}_#{environments(location)} images"
+          task :deploy do
+            deploy_timestamp = Time.now.to_i
+            images_to_build(location, environment).each do |image|
+              tagged_image = "104.131.124.150:5000/#{location}_#{environment}_#{image}:#{deploy_timestamp}"
+              sh "docker tag #{location}_#{environment}_#{image}:latest #{tagged_image}"
+              sh "docker push #{tagged_image}"
+            end
+          end
 
-      desc "Copy #{environment} dockerfiles to application root"
-      task :copy_dockerfiles_to_root do
-        images_to_build(environment).each do |image|
-          cp "#{environment}/#{image}/Dockerfile", "../#{image}.dockerfile"
-        end
-      end
+          desc "Copy #{location}_#{environment} dockerfiles to application root"
+          task :copy_dockerfiles_to_root do
+            images_to_build(location, environment).each do |image|
+              cp "#{location}/#{environment}/#{image}/Dockerfile", "../#{image}.dockerfile"
+            end
+          end
 
-      desc "Remove copied #{environment} dockerfiles from application context"
-      task :remove_dockerfiles_from_root do
-        images_to_build(environment).each do |image|
-          rm "../#{image}.dockerfile"
-        end
-      end
+          desc "Remove copied #{location}_#{environment} dockerfiles from application context"
+          task :remove_dockerfiles_from_root do
+            images_to_build(location, environment).each do |image|
+              rm "../#{image}.dockerfile"
+            end
+          end
 
-      desc "Build #{environment}"
-      task :build => [:copy_dockerfiles_to_root] do
-        Dir.chdir('../') do
-          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml build"
-        end
-        Rake::Task["shig:#{environment}:remove_dockerfiles_from_root"].invoke
-      end
+          desc "Build #{location}_#{environment}"
+          task :build => [:copy_dockerfiles_to_root] do
+            Dir.chdir('../') do
+              sh "docker-compose -p #{location}-#{environment} -f shigorath/#{location}/#{environment}/docker-compose.yml build"
+            end
+            Rake::Task["shig:#{location}:#{environment}:remove_dockerfiles_from_root"].invoke
+          end
 
-      desc "Up #{environment}"
-      task :up do
-        Dir.chdir('../') do
-          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml up"
-        end
-      end
+          desc "Up #{location}_#{environment}"
+          task :up do
+            Dir.chdir('../') do
+              sh "docker-compose -p #{location}-#{environment} -f shigorath/#{location}/#{environment}/docker-compose.yml up"
+            end
+          end
 
-      desc "Start #{environment}"
-      task :start do
-        Dir.chdir('../') do
-          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml up -d"
-        end
-      end
+          desc "Start #{location}_#{environment}"
+          task :start do
+            Dir.chdir('../') do
+              sh "docker-compose -p #{location}-#{environment} -f shigorath/#{location}/#{environment}/docker-compose.yml up -d"
+            end
+          end
 
-      desc "Stop #{environment}"
-      task :stop do
-        Dir.chdir('../') do
-          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml stop"
-        end
-      end
+          desc "Stop #{location}_#{environments(location)}"
+          task :stop do
+            Dir.chdir('../') do
+              sh "docker-compose -p #{location}-#{environment} -f shigorath/#{location}/#{environment}/docker-compose.yml stop"
+            end
+          end
 
-      desc "Restart #{environment}"
-      task :restart do
-        Dir.chdir('../') do
-          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml stop"
-          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml up -d"
-        end
-      end
+          desc "Restart #{location}_#{environment}"
+          task :restart do
+            Dir.chdir('../') do
+              sh "docker-compose -p #{location}-#{environment} -f shigorath/#{location}/#{environment}/docker-compose.yml stop"
+              sh "docker-compose -p #{location}-#{environment} -f shigorath/#{location}/#{environment}/docker-compose.yml up -d"
+            end
+          end
 
-      desc "Kill #{environment}"
-      task :kill do
-        Dir.chdir('../') do
-          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml kill"
-        end
-      end
+          desc "Kill #{location}_#{environment}"
+          task :kill do
+            Dir.chdir('../') do
+              sh "docker-compose -p #{location}-#{environment} -f shigorath/#{location}/#{environment}/docker-compose.yml kill"
+            end
+          end
 
-      desc "Logs #{environment}"
-      task :logs do
-        Dir.chdir('../') do
-          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml logs"
-        end
-      end
+          desc "Remove #{location}_#{environment}"
+          task :rm do
+            Dir.chdir('../') do
+              sh "docker-compose -p #{location}-#{environment} -f shigorath/#{location}/#{environment}/docker-compose.yml rm"
+            end
+          end
 
-      desc "PS #{environment}"
-      task :ps do
-        Dir.chdir('../') do
-          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml ps"
-        end
-      end
+          desc "Logs #{location}_#{environment}"
+          task :logs do
+            Dir.chdir('../') do
+              sh "docker-compose -p #{location}-#{environment} -f shigorath/#{location}/#{environment}/docker-compose.yml logs"
+            end
+          end
 
-      desc "Run #{environment} container"
-      task :run, [:image_name, :command_name] do |t, args|
-        Dir.chdir('../') do
-          sh "docker-compose -f shigorath/#{environment}/docker-compose.yml run --rm #{args[:image_name]} #{args[:command_name]}"
+          desc "PS #{location}_#{environment}"
+          task :ps do
+            Dir.chdir('../') do
+              sh "docker-compose -p #{location}-#{environment} -f shigorath/#{location}/#{environment}/docker-compose.yml ps"
+            end
+          end
+
+          desc "Run #{location}_#{environment} container"
+          task :run, [:image_name, :command_name] do |t, args|
+            Dir.chdir('../') do
+              sh "docker-compose -p #{location}-#{environment} -f shigorath/#{location}/#{environment}/docker-compose.yml run --rm #{args[:image_name]} #{args[:command_name]}"
+            end
+          end
+
+          desc "Attach #{location}_#{environment} container"
+          task :attach, [:image_name] do |t, args|
+            Rake::Task["shig:#{location}:#{environment}:run"].invoke((args[:image_name] || 'app'), '/bin/bash')
+          end
         end
-      end
-      
-      desc "Attach #{environment} container"
-      task :attach, [:image_name] do |t, args|
-        Rake::Task["shig:#{environment}:run"].invoke((args[:image_name] || 'app'), '/bin/bash')
       end
     end
   end

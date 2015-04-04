@@ -1,0 +1,24 @@
+app:
+  build: .
+  dockerfile: app.dockerfile
+  command: /bin/bash shigorath/local/staging/app/start
+  links:
+    - db
+  ports:
+    - "3000:3000"
+  volumes:
+    - .:/home/deployer/application
+    - staging_gems:/gems
+
+db:
+  image: postgres
+  ports:
+    - "5432"
+
+web:
+  build: .
+  dockerfile: web.dockerfile
+  ports:
+    - "80:80"
+  links:
+    - app

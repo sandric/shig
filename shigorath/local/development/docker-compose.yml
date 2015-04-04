@@ -1,20 +1,14 @@
 app:
   build: .
   dockerfile: app.dockerfile
-  command: /bin/bash shigorath/development/app/start
+  command: /bin/bash shigorath/local/development/app/start
   links:
     - db
   ports:
     - "3000:3000"
   volumes:
     - .:/home/developer/application
-  volumes_from:
-    - gems
-
-gems:
-  image: busybox
-  volumes:
-    - gems
+    - development_gems:/gems
 
 db:
   image: postgres

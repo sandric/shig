@@ -20,4 +20,8 @@
 
 env/*
 
+staging_gems/
+development_gems/
+
+
 *.swp
