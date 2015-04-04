@@ -12,4 +12,5 @@ ADD Gemfile /home/deployer/application/Gemfile
 
 WORKDIR /home/deployer/application
 
+ENV TERM dumb
 CMD /bin/bash shigorath/staging/app/start

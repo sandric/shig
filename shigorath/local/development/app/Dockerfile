@@ -12,4 +12,5 @@ ADD ./Gemfile /home/developer/application/Gemfile
 
 WORKDIR /home/developer/application
 
+ENV TERM dumb
 CMD /bin/bash start

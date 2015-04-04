@@ -115,7 +115,7 @@ namespace :shig do
 
           desc "Attach #{location}_#{environment} container"
           task :attach, [:image_name] do |t, args|
-            Rake::Task["shig:#{location}:#{environment}:run"].invoke((args[:image_name] || 'app'), '/bin/bash')
+            sh "docker exec -t -i #{location}#{environment}_#{args[:image_name]}_1 /bin/bash"
           end
         end
       end

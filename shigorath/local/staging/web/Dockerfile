@@ -10,4 +10,5 @@ ADD public /usr/share/nginx/html
 ADD shigorath/local/staging/web/default.conf /etc/nginx/conf.d/default.conf
 ADD shigorath/local/staging/web/nginx.conf /etc/nginx/nginx.conf
 
+ENV TERM dumb
 CMD service nginx start
